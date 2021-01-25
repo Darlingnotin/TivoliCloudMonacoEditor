@@ -1,10 +1,3 @@
-// Copyright (c) 2021 Danielle Arlington.
-
-// This program is free software: you can redistribute it and/or modify  
-// it under the terms of the GNU General Public License as published by  
-// the Free Software Foundation, version 3.
-// https://www.gnu.org/licenses/gpl-3.0.en.html
-
 var tablet = Tablet.getTablet("com.highfidelity.interface.tablet.system");
 var button = tablet.addButton({
     text: "Editor"
