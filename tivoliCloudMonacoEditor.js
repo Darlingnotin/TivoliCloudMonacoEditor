@@ -9,8 +9,7 @@ var tablet = Tablet.getTablet("com.highfidelity.interface.tablet.system");
 var button = tablet.addButton({
     text: "Editor"
 });
-var monacoEditorUrl = Script.resolvePath("node_modules/monaco-editor.html");
-
+var monacoEditorUrl = Script.resolvePath("node_modules/monaco-editor.html?166374");
 var overlayWebWindow = new OverlayWebWindow({
     title: "Editor",
     source: "about:blank",
@@ -18,6 +17,9 @@ var overlayWebWindow = new OverlayWebWindow({
     height: 720,
     visible: false
 });
+var isLive = false;
+var id;
+var liveEditorFileName;
 
 function onClicked() {
     setActive(!button.getProperties().isActive);
@@ -63,6 +65,14 @@ overlayWebWindow.webEventReceived.connect(function (event) {
                 }
             }
         );
+    } else if (webEventData.action == "goLive") {
+        id = webEventData.id;
+        liveEditorFileName = webEventData.fileName;
+        goLine();
+    } else if (webEventData.action == "goSilent") {
+        goSilent();
+    } else if (webEventData.action == "sendLiveUpdates") {
+        Messages.sendMessage("editorLiveChannel", event);
     }
 });
 
@@ -74,8 +84,41 @@ function setActive(active) {
 
 overlayWebWindow.closed.connect(function () {
     setActive(false);
+    isLive = false;
+    Messages.unsubscribe("editorLiveChannel");
 });
+
+function goLine() {
+    isLive = true;
+    Messages.messageReceived.connect(onMessageReceived);
+    Messages.subscribe("editorLiveChannel");
+}
+
+function goSilent() {
+    isLive = false;
+    Messages.unsubscribe("editorLiveChannel");
+}
+
+function onMessageReceived(channel, message) {
+    if (channel != "editorLiveChannel") {
+        return;
+    }
+    var messageData = JSON.parse(message);
+    if (isLive && messageData.id != id) {
+        if (messageData.action == "sendLiveUpdates" && messageData.fileName == liveEditorFileName) {
+            var messageData = {
+                action: "receiveLiveData",
+                fileData: messageData.scriptUpdateData
+            };
+            overlayWebWindow.emitScriptEvent(JSON.stringify(messageData));
+        }
+    }
+}
 
 Script.scriptEnding.connect(function () {
     tablet.removeButton(button);
+    if (isLive) {
+        Messages.unsubscribe("editorLiveChannel");
+        Messages.messageReceived.disconnect(onMessageReceived);
+    }
 });
