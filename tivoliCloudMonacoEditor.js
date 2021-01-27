@@ -86,8 +86,11 @@ function setActive(active) {
 
 overlayWebWindow.closed.connect(function () {
     setActive(false);
-    isLive = false;
-    Messages.unsubscribe("editorLiveChannel");
+    if (isLive) {
+        isLive = false;
+        Messages.unsubscribe("editorLiveChannel");
+        Messages.messageReceived.disconnect(onMessageReceived);
+    }
 });
 
 function goLine() {
@@ -99,6 +102,7 @@ function goLine() {
 function goSilent() {
     isLive = false;
     Messages.unsubscribe("editorLiveChannel");
+    Messages.messageReceived.disconnect(onMessageReceived);
 }
 
 function onMessageReceived(channel, message) {
