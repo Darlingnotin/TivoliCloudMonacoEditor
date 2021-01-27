@@ -73,6 +73,8 @@ overlayWebWindow.webEventReceived.connect(function (event) {
         goSilent();
     } else if (webEventData.action == "sendLiveUpdates") {
         Messages.sendMessage("editorLiveChannel", event);
+    } else if (webEventData.action == "executeJs") {
+        eval(webEventData.scriptData);
     }
 });
 
