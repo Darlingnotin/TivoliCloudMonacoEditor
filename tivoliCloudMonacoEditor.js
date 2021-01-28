@@ -20,6 +20,10 @@ var overlayWebWindow = new OverlayWebWindow({
 var isLive = false;
 var id;
 var liveEditorFileName;
+var pageStatus = {
+    scriptData: "",
+    styleDark: true
+}
 
 function onClicked() {
     setActive(!button.getProperties().isActive);
@@ -73,8 +77,19 @@ overlayWebWindow.webEventReceived.connect(function (event) {
         goSilent();
     } else if (webEventData.action == "sendLiveUpdates") {
         Messages.sendMessage("editorLiveChannel", event);
+        pageStatus.scriptData = webEventData.scriptUpdateData;
     } else if (webEventData.action == "executeJs") {
         eval(webEventData.scriptData);
+    } else if (webEventData.action == "requestCurrentPageStatus") {
+        var messageData = {
+            action: "requestCurrentPageStatusResponse",
+            pageStatus: pageStatus
+        };
+        overlayWebWindow.emitScriptEvent(JSON.stringify(messageData));
+    } else if (webEventData.action == "updatePageData") {
+        pageStatus.scriptData = webEventData.scriptData;
+    } else if (webEventData.action == "updateStyle") {
+        pageStatus.styleDark = webEventData.styleDark
     }
 });
 
