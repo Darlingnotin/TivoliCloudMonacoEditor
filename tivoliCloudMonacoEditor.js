@@ -132,6 +132,7 @@ function onMessageReceived(channel, message) {
                 fileData: messageData.scriptUpdateData
             };
             overlayWebWindow.emitScriptEvent(JSON.stringify(messageData));
+            pageStatus.scriptData = messageData.fileData;
         }
     }
 }
