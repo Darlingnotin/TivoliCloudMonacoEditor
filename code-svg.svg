@@ -57,18 +57,12 @@
      inkscape:window-x="1912"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg26" />
+     inkscape:current-layer="svg26"
+     inkscape:document-rotation="0" />
   <path
      d="M0 0h24v24H0V0z"
      fill="none"
      id="path22" />
-  <rect
-     style="fill:#000000"
-     id="rect38"
-     width="24"
-     height="24"
-     x="-4.7683716e-07"
-     y="3.1106174e-07" />
   <path
      d="m 9.7044992,15.852596 -4.6,-4.6 4.6,-4.6000009 -1.4,-1.4 -6,6.0000009 6,6 z m 5.1999998,0 4.6,-4.6 -4.6,-4.6000009 1.4,-1.4 6,6.0000009 -6,6 z"
      id="path44"
