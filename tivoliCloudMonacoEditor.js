@@ -8,8 +8,7 @@
 var tablet = Tablet.getTablet("com.highfidelity.interface.tablet.system");
 var button = tablet.addButton({
     text: "Editor",
-    icon: Script.resolvePath("code-svg.svg"),
-    iconPadding: 0
+    icon: Script.resolvePath("code-svg.svg")
 });
 var monacoEditorUrl = Script.resolvePath("node_modules/monaco-editor.html?166374");
 var overlayWebWindow = new OverlayWebWindow({
