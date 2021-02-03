@@ -25,6 +25,9 @@ var pageStatus = {
     scriptData: "",
     styleDark: true
 }
+var pickerActive = false;
+var scriptType;
+var pickerTimeOut;
 
 function onClicked() {
     setActive(!button.getProperties().isActive);
@@ -91,6 +94,12 @@ overlayWebWindow.webEventReceived.connect(function (event) {
         pageStatus.scriptData = webEventData.scriptData;
     } else if (webEventData.action == "updateStyle") {
         pageStatus.styleDark = webEventData.styleDark
+    } else if (webEventData.action == "pickerGetScript") {
+        scriptType = webEventData.scriptType;
+        if (!pickerActive) {
+            pickerActive = true;
+            pickerGetScript();
+        }
     }
 });
 
@@ -106,6 +115,11 @@ overlayWebWindow.closed.connect(function () {
         isLive = false;
         Messages.unsubscribe("editorLiveChannel");
         Messages.messageReceived.disconnect(onMessageReceived);
+    }
+    if (pickerActive) {
+        Entities.clickDownOnEntity.disconnect(onClick);
+        pickerActive = false;
+        Script.clearTimeout(pickerTimeOut);
     }
 });
 
@@ -138,10 +152,64 @@ function onMessageReceived(channel, message) {
     }
 }
 
+function pickerGetScript() {
+    pickerActiveTimeOut();
+    Entities.clickDownOnEntity.connect(onClick);
+}
+
+function onClick(uuid, mouseEvent) {
+    entity = Entities.getEntityProperties(uuid, ["script", "serverScripts"]);
+    if (scriptType == "script") {
+        fileName = entity.script;
+    } else if (scriptType == "serverScripts") {
+        fileName = entity.serverScripts;
+    }
+    if (fileName.substring(0, 3) == "atp") {
+        if (fileName != "undefined") {
+            Assets.getAsset(
+                {
+                    url: fileName,
+                    responseType: "text"
+                },
+                function (error, result) {
+                    if (error) {
+                        var messageData = {
+                            action: "loadScriptResponse",
+                            fileData: "ERROR: Data not downloaded"
+                        };
+                        overlayWebWindow.emitScriptEvent(JSON.stringify(messageData));
+                    } else {
+                        var messageData = {
+                            action: "loadScriptResponse",
+                            fileData: result.response,
+                            fileName: fileName
+                        };
+                        overlayWebWindow.emitScriptEvent(JSON.stringify(messageData));
+                    }
+                }
+            );
+            pickerActive = false;
+            Entities.clickDownOnEntity.disconnect(onClick);
+            Script.clearTimeout(pickerTimeOut);
+        }
+    }
+}
+
+function pickerActiveTimeOut() {
+    pickerTimeOut = Script.setTimeout(function() {
+        Entities.clickDownOnEntity.disconnect(onClick);
+        pickerActive = false;
+    }, 60000);
+}
+
 Script.scriptEnding.connect(function () {
     tablet.removeButton(button);
     if (isLive) {
         Messages.unsubscribe("editorLiveChannel");
         Messages.messageReceived.disconnect(onMessageReceived);
+    }
+    if (pickerActive) {
+        Entities.clickDownOnEntity.disconnect(onClick);
+        Script.clearTimeout(pickerTimeOut);
     }
 });
