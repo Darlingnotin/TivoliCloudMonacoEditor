@@ -100,6 +100,9 @@ overlayWebWindow.webEventReceived.connect(function (event) {
             pickerActive = true;
             pickerGetScript();
         }
+    } else if (webEventData.action == "openTabletEditorMenu") {
+        var tabletEditor = Script.resolvePath("node_modules/tabletEditorMenu.html");
+        tablet.gotoWebScreen(tabletEditor);
     }
 });
 
@@ -196,14 +199,30 @@ function onClick(uuid, mouseEvent) {
 }
 
 function pickerActiveTimeOut() {
-    pickerTimeOut = Script.setTimeout(function() {
+    pickerTimeOut = Script.setTimeout(function () {
         Entities.clickDownOnEntity.disconnect(onClick);
         pickerActive = false;
     }, 60000);
 }
 
+tablet.webEventReceived.connect(onWebEventReceived);
+
+function onWebEventReceived(event) {
+    var messageData = JSON.parse(event);
+    if (messageData.action == "editFile") {
+        var messageData = {
+            action: "editFile",
+            fileData: messageData.fileData,
+            fileName: messageData.fileName
+        };
+        overlayWebWindow.emitScriptEvent(JSON.stringify(messageData));
+        pageStatus.scriptData = messageData.fileData;
+    }
+}
+
 Script.scriptEnding.connect(function () {
     tablet.removeButton(button);
+    tablet.webEventReceived.disconnect(onWebEventReceived);
     if (isLive) {
         Messages.unsubscribe("editorLiveChannel");
         Messages.messageReceived.disconnect(onMessageReceived);
