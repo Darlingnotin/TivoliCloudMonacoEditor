@@ -195,6 +195,33 @@ function onClick(uuid, mouseEvent) {
             Entities.clickDownOnEntity.disconnect(onClick);
             Script.clearTimeout(pickerTimeOut);
         }
+    } else if (fileName.split(":")[0] == "http" || fileName.split(":")[0] == "https") {
+        var requestFailed = true;
+        var ws = new WebSocket("ws://localhost:888");
+        ws.onopen = function () {
+            ws.send(JSON.stringify({
+                action: "requestRemoteFile",
+                url: fileName
+            }));
+        }
+        ws.onmessage = function (evt) {
+            var evtData = JSON.parse(evt.data);
+            if (evtData.action == "requestRemoteFileResponse") {
+                var messageData = {
+                    action: "loadScriptResponse",
+                    fileData: evtData.file,
+                    fileName: fileName
+                };
+                overlayWebWindow.emitScriptEvent(JSON.stringify(messageData));
+            }
+            requestFailed = false;
+            ws.close();
+        }
+        ws.onclose = function () {
+            if (requestFailed) {
+                Window.alert("Request Failed");
+            }
+        }
     }
 }
 
