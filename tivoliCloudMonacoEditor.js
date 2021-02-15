@@ -244,6 +244,8 @@ function onWebEventReceived(event) {
         };
         overlayWebWindow.emitScriptEvent(JSON.stringify(messageData));
         pageStatus.scriptData = messageData.fileData;
+    } else if (messageData.action == "viewModel") {
+        Window.location = "http://localhost/" + messageData.fileName + "?";
     }
 }
 
